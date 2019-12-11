@@ -87,7 +87,7 @@ class MainActivity : AppCompatActivity() {
         var body = FormBody.Builder().add("name",name)
             .add("phone",phone).add("like",like).add("hate",hate)
             .add("blind",blind).build()
-        var request = Request.Builder().url("http://172.20.10.4:8000/upload_data").post(body).build()
+        var request = Request.Builder().url("http://192.168.0.3:8000/upload_data").post(body).build()
         client.newCall(request).enqueue(object:Callback{
             override fun onFailure(call: Call, e: IOException) {
                 e.printStackTrace()
@@ -106,6 +106,8 @@ class MainActivity : AppCompatActivity() {
     fun init_listener(){
         send_button.setOnClickListener {
             //fileuploadutils.sen2Server(temp_file)
+            name = name_edit_text.text.toString()
+            phone = phone_edit_text.text.toString()
             var vidieoFile = object: RequestBody() {
                 override fun contentLength(): Long {
                     return fd.declaredLength
@@ -119,25 +121,24 @@ class MainActivity : AppCompatActivity() {
                     sink.writeAll(input.source().buffer())
                 }
 
-            }
-            name = name_edit_text.text.toString()
-            phone = phone_edit_text.text.toString()
-            var date = SimpleDateFormat("yyyy_MM_dd_hh_mm_ss").format(Date())
+            } // 보낼 VideoFile Request로 보내기위하여 세팅
+
+            var date = SimpleDateFormat("yyyy_MM_dd_hh_mm_ss").format(Date()) // 비디오의 이름 설정
             var client = OkHttpClient.Builder()
-                .connectTimeout(10,TimeUnit.SECONDS).writeTimeout(60,TimeUnit.SECONDS).readTimeout(30,TimeUnit.SECONDS).build()
+                .connectTimeout(10,TimeUnit.SECONDS).writeTimeout(60,TimeUnit.SECONDS).readTimeout(30,TimeUnit.SECONDS).build() //타임아웃 설정
             var requestBody = MultipartBody.Builder().setType(MultipartBody.FORM)
-                .addFormDataPart("files",date+".mp4",vidieoFile).build()
-            var request = Request.Builder().url("http://172.20.10.4:8000/upload").
+                .addFormDataPart("files",date+".mp4",vidieoFile).build() //확장자와 file 설정
+            var request = Request.Builder().url("http://192.168.0.3:8000/upload"). // 서버에 Post를 보냄
                 post(requestBody).build()
             client.newCall(request).enqueue(object:Callback{
                 override fun onFailure(call: Call, e: IOException) {
                     e.printStackTrace()
                 }
 
-                override fun onResponse(call: Call, response: Response) {
-                    Log.d("Test",response.body!!.string())
+                override fun onResponse(call: Call, response: Response) { //만약 동영상 데이터가 보내져서 리스폰스가 왔으면
+                    send2server_data() // 사용자 데이터를 보냄냄                    Log.d("Test",response.body!!.string())
                     fd.close()
-                    send2server_data()
+
                 }
 
             })
@@ -186,6 +187,7 @@ class MainActivity : AppCompatActivity() {
             }
 
         })
+
 
     }
 
